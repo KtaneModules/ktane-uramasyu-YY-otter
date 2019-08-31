@@ -52,6 +52,7 @@ public class MasyuScript : MonoBehaviour {
         clearPuzzleInit();
         clearPuzzleMain();
         generatePuzzle();
+        fillSolution(usedPuzzle);
     }
 
     void PressButton(KMSelectable pressed)
