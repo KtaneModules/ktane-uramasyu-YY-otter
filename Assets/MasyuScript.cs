@@ -260,7 +260,7 @@ public class MasyuScript : MonoBehaviour {
 
     //twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified cells] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board]";
+    private readonly string TwitchHelpMessage = @"!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified cells] | !{0} h/horizontal 101100011 [Toggles the horizontal paths in reading order starting from the TL where 0=nopath & 1=path] | !{0} !{0} v/vertical 101100011 [Toggles the vertical paths in column order (top to bottom of each column from left to right) starting from the TL where 0=nopath & 1=path] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board]";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
@@ -278,6 +278,66 @@ public class MasyuScript : MonoBehaviour {
             yield return new WaitForSeconds(1.5f);
             buttons[83].OnInteractEnded();
             yield break;
+        }
+        string[] parameters2 = command.Split(' ');
+        if (Regex.IsMatch(parameters2[0], @"^\s*h\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(parameters2[0], @"^\s*horizontal\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            if(parameters2.Length == 2)
+            {
+                if (parameters2[1].Length <= 40)
+                {
+                    for (int i = 0; i < parameters2[1].Length; i++)
+                    {
+                        if (!parameters2[1].ElementAt(i).Equals('0') && !parameters2[1].ElementAt(i).Equals('1'))
+                        {
+                            yield break;
+                        }
+                    }
+                    yield return null;
+                    for (int i = 0; i < parameters2[1].Length; i++)
+                    {
+                        if (parameters2[1].ElementAt(i).Equals('1') && horizSelection.ElementAt(i).Equals('0'))
+                        {
+                            buttons[i].OnInteract();
+                        }else if (parameters2[1].ElementAt(i).Equals('0') && horizSelection.ElementAt(i).Equals('1'))
+                        {
+                            buttons[i].OnInteract();
+                        }
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                    yield break;
+                }
+            }
+        }
+        if (Regex.IsMatch(parameters2[0], @"^\s*v\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(parameters2[0], @"^\s*vertical\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            if (parameters2.Length == 2)
+            {
+                if (parameters2[1].Length <= 42)
+                {
+                    for (int i = 0; i < parameters2[1].Length; i++)
+                    {
+                        if (!parameters2[1].ElementAt(i).Equals('0') && !parameters2[1].ElementAt(i).Equals('1'))
+                        {
+                            yield break;
+                        }
+                    }
+                    yield return null;
+                    for (int i = 0; i < parameters2[1].Length; i++)
+                    {
+                        if (parameters2[1].ElementAt(i).Equals('1') && vertSelection.ElementAt(i).Equals('0'))
+                        {
+                            buttons[i+40].OnInteract();
+                        }
+                        else if (parameters2[1].ElementAt(i).Equals('0') && vertSelection.ElementAt(i).Equals('1'))
+                        {
+                            buttons[i+40].OnInteract();
+                        }
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                    yield break;
+                }
+            }
         }
         command = command.Replace(" ", String.Empty);
         command = command.ToLower();
