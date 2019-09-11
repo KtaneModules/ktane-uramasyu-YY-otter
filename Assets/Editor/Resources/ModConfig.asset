@@ -22,11 +22,11 @@ MonoBehaviour:
     PDF: https://ktane.timwi.de/PDF/Masyu.pdf
 
 
-    Masyu (masyuModule) v1.0.7
+    Masyu (masyuModule) v1.0.8
 
     Module and Concept by Ben & eXish
 
     Twitch Plays supported'
-  version: 1.0.7
+  version: 1.0.8
   outputFolder: build
   previewImage: {fileID: 2800000, guid: 20328af265074f64fa6095da1804857d, type: 3}
