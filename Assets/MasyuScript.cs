@@ -1014,4 +1014,11 @@ public class MasyuScript : MonoBehaviour {
             yield return new WaitForSeconds(0.1f);
         }
     }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        yield return ProcessTwitchCommand("h "+ solutionH[usedPuzzle]);
+        yield return ProcessTwitchCommand("v " + solutionV[usedPuzzle]);
+        yield return ProcessTwitchCommand("submit");
+    }
 }
