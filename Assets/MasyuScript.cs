@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -261,7 +261,7 @@ public class MasyuScript : MonoBehaviour {
 
     //twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified cells] | !{0} h/horizontal 101100011 [Toggles the horizontal paths in reading order starting from the TL where 0=nopath & 1=path] | !{0} v/vertical 101100011 [Toggles the vertical paths in column order (top to bottom of each column from left to right) starting from the TL where 0=nopath & 1=path] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board]";
+    private readonly string TwitchHelpMessage = "!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified cells] | !{0} h/horizontal 101100011 [Toggles the horizontal paths in reading order starting from the TL where 0=nopath & 1=path] | !{0} v/vertical 101100011 [Toggles the vertical paths in column order (top to bottom of each column from left to right) starting from the TL where 0=nopath & 1=path] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board] \nAdditional commands are available. Use !{0} d/draw/t/trace help to learn more about draw and trace commands.";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
@@ -340,22 +340,187 @@ public class MasyuScript : MonoBehaviour {
                 }
             }
         }
-        command = command.Replace(" ", String.Empty);
-        command = command.ToLower();
-        string[] parameters = command.Split(',',';');
-        string[] valids = { "a1b1", "b1c1", "c1d1", "d1e1", "e1f1", "a2b2", "b2c2", "c2d2", "d2e2", "e2f2", "a3b3", "b3c3", "c3d3", "d3e3", "e3f3", "a4b4", "b4c4", "c4d4", "d4e4", "e4f4", "a5b5", "b5c5", "c5d5", "d5e5", "e5f5", "a6b6", "b6c6", "c6d6", "d6e6", "e6f6", "a7b7", "b7c7", "c7d7", "d7e7", "e7f7", "a8b8", "b8c8", "c8d8", "d8e8", "e8f8", "a1a2", "a2a3", "a3a4", "a4a5", "a5a6", "a6a7", "a7a8", "b1b2", "b2b3", "b3b4", "b4b5", "b5b6", "b6b7", "b7b8", "c1c2", "c2c3", "c3c4", "c4c5", "c5c6", "c6c7", "c7c8", "d1d2", "d2d3", "d3d4", "d4d5", "d5d6", "d6d7", "d7d8", "e1e2", "e2e3", "e3e4", "e4e5", "e5e6", "e6e7", "e7e8", "f1f2", "f2f3", "f3f4", "f4f5", "f5f6", "f6f7", "f7f8",
-                            "b1a1", "c1b1", "d1c1", "e1d1", "f1e1", "b2a2", "c2b2", "d2c2", "e2d2", "f2e2", "b3a3", "c3b3", "d3c3", "e3d3", "f3e3", "b4a4", "c4b4", "d4c4", "e4d4", "f4e4", "b5a5", "c5b5", "d5c5", "e5d5", "f5e5", "b6a6", "c6b6", "d6c6", "e6d6", "f6e6", "b7a7", "c7b7", "d7c7", "e7d7", "f7e7", "b8a8", "c8b8", "d8c8", "e8d8", "f8e8", "a2a1", "a3a2", "a4a3", "a5a4", "a6a5", "a7a6", "a8a7", "b2b1", "b3b2", "b4b3", "b5b4", "b6b5", "b7b6", "b8b7", "c2c1", "c3c2", "c4c3", "c5c4", "c6c5", "c7c6", "c8c7", "d2d1", "d3d2", "d4d3", "d5d4", "d6d5", "d7d6", "d8d7", "e2e1", "e3e2", "e4e3", "e5e4", "e6e5", "e7e6", "e8e7", "f2f1", "f3f2", "f4f3", "f5f4", "f6f5", "f7f6", "f8f7"};
-        for(int i = 0; i < parameters.Length; i++)
+        if (Regex.IsMatch(parameters2[0], @"(^\s*d\s*$)|(^\s*draw\s*$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
-            if (!valids.Contains(parameters[i]))
+            if (parameters2.Length == 2)
+            {
+                if (Regex.IsMatch(parameters2[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                {
+                    yield return "sendtochat !{1} d/draw a1 b1 b3 c3 c5 e5 a5 [Clears the screen and draws straight lines connecting between each point. Each adjacent coordinates must have a possible straight path between them (The last coordinate is considered adjacent to first coordinate.). At least 4 coordinates are expected. Separate each coordinate with spaces.]";
+                }
+                yield break;
+            }
+
+            //Limits the length of command
+            if (parameters2.Length < 5 || parameters2.Length > 49)
+                yield break;
+
+            for (int i = 1; i < parameters2.Length; i++)
+            {
+                if (!Regex.IsMatch(parameters2[i], @"^\s*[a-f][1-8]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                    yield break;
+                if (i != parameters2.Length - 1 ? !(parameters2[i][0] == parameters2[i + 1][0] ^ parameters2[i][1] == parameters2[i + 1][1]) : !(parameters2[1][0] == parameters2[i][0] ^ parameters2[1][1] == parameters2[i][1]))
+                    yield break;
+            }
+
+            if (parameters2.GroupBy(x => x).Any(g => g.Count() > 1))
             {
                 yield break;
             }
+
+            yield return null;
+            buttons[83].OnInteract();
+            yield return new WaitForSeconds(1.75f);
+            buttons[83].OnInteractEnded();
+
+            for (int i = 1; i < parameters2.Length; i++)
+            {
+                bool isLast = i != parameters2.Length - 1;
+                parameters2[i] = parameters2[i].ToLowerInvariant();
+                if (isLast ? parameters2[i][1] == parameters2[i + 1][1] : parameters2[i][1] == parameters2[1][1])
+                {
+                    int initialIndex = (parameters2[i][1] - '1') * 5 + (parameters2[i][0] - 'a');
+                    int times = isLast ? parameters2[i][0] - parameters2[i + 1][0] : parameters2[i][0] - parameters2[1][0];
+                    for (int j = 0; j < Math.Abs(times); j++)
+                    {
+                        if (times > 0)
+                            buttons[initialIndex - j - 1].OnInteract();
+                        else
+                            buttons[initialIndex + j].OnInteract();
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                }
+                else if (isLast ? parameters2[i][0] == parameters2[i + 1][0] : parameters2[i][0] == parameters2[1][0])
+                {
+                    int initialIndex = (parameters2[i][1] - '1') + (parameters2[i][0] - 'a') * 7;
+                    int times = isLast ? parameters2[i][1] - parameters2[i + 1][1] : parameters2[i][1] - parameters2[1][1];
+                    for (int j = 0; j < Math.Abs(times); j++)
+                    {
+                        if (times > 0)
+                            buttons[40 + initialIndex - j - 1].OnInteract();
+                        else
+                            buttons[40 + initialIndex + j].OnInteract();
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                }
+                yield return "trycancel Drawing has been halted due to a request to cancel";
+            }
+            yield break;
+        }
+        if (Regex.IsMatch(parameters2[0], @"(^\s*t\s*$)|(^\s*trace\s*$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+            if (parameters2.Length == 1)
+                yield break;
+            if (parameters2.Length == 2)
+            {
+                if (Regex.IsMatch(parameters2[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                {
+                    yield return "sendtochat !{1} t/trace a4 r u dlr c3 l [Traces path starting from the specified coordinates towards specified cardinal directions.The first arguments must be coordinate followed by cardinal directions.The command must end with cardinal direction.Separate each argument with spaces.]";
+                }
+                yield break;
+            }
+            bool firstParametersCoordinate = false;
+            bool previousParametersIsDirection = false;
+
+            for (int i = 1; i < parameters2.Length; i++)
+            {
+                if (Regex.IsMatch(parameters2[i], @"^\s*[a-f][1-8]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) && (!firstParametersCoordinate || previousParametersIsDirection))
+                {
+                    previousParametersIsDirection = false;
+                    firstParametersCoordinate = true;
+                }
+                else if (Regex.IsMatch(parameters2[i], @"^\s*[udlr]+\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) && firstParametersCoordinate)
+                    previousParametersIsDirection = true;
+                else
+                    yield break;
+            }
+
+            if (!previousParametersIsDirection)
+                yield break;
+
+            string validatedCommand = parameters2.Join().ToLowerInvariant().Replace("trace", String.Empty).Replace("t", String.Empty).Replace(" ", String.Empty);
+
+            //Limits the length of the command
+            if (validatedCommand.Length > 75)
+                yield break;
+
+            yield return null;
+
+            int[] coordinate = new int[2];
+            //for (int i = 1; i < parameters2.Length; i++)
+            for (int i = 0; i < validatedCommand.Length; i++)
+            {
+                if (i != validatedCommand.Length - 1 ? Regex.IsMatch(validatedCommand.Substring(i, 2), @"^\s*[a-f][1-8]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) : false) 
+                {
+                    char[] letterCoordinate = validatedCommand.Substring(i, 2).ToCharArray();
+                    coordinate[0] = letterCoordinate[0] - 'a';
+                    coordinate[1] = letterCoordinate[1] - '1';
+                    i++;
+                }
+                else if(validatedCommand[i] =='u' && coordinate[1] != 0)
+                {
+                    coordinate[1]--;
+                    buttons[40 + coordinate[1] + coordinate[0] * 7].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                }
+                else if (validatedCommand[i] == 'd' && coordinate[1] != 7)
+                {
+                    buttons[40 + coordinate[1] + coordinate[0] * 7].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    coordinate[1]++;
+                }
+                else if (validatedCommand[i] == 'l' && coordinate[0] != 0)
+                {
+                    coordinate[0]--;
+                    buttons[coordinate[1] * 5 + coordinate[0]].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                }
+                else if (validatedCommand[i] == 'r' && coordinate[0] != 5)
+                {
+                    buttons[coordinate[1] * 5 + coordinate[0]].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    coordinate[0]++;
+                }
+                yield return "trycancel Tracing has been halted due to a request to cancel";
+            }
+            yield break;
+        }
+        command = command.Replace(" ", String.Empty);
+        command = command.ToLower();
+        string[] parameters = command.Split(',',';');
+        /*string[] valids = { "a1b1", "b1c1", "c1d1", "d1e1", "e1f1", "a2b2", "b2c2", "c2d2", "d2e2", "e2f2", "a3b3", "b3c3", "c3d3", "d3e3", "e3f3", "a4b4", "b4c4", "c4d4", "d4e4", "e4f4", "a5b5", "b5c5", "c5d5", "d5e5", "e5f5", "a6b6", "b6c6", "c6d6", "d6e6", "e6f6", "a7b7", "b7c7", "c7d7", "d7e7", "e7f7", "a8b8", "b8c8", "c8d8", "d8e8", "e8f8", "a1a2", "a2a3", "a3a4", "a4a5", "a5a6", "a6a7", "a7a8", "b1b2", "b2b3", "b3b4", "b4b5", "b5b6", "b6b7", "b7b8", "c1c2", "c2c3", "c3c4", "c4c5", "c5c6", "c6c7", "c7c8", "d1d2", "d2d3", "d3d4", "d4d5", "d5d6", "d6d7", "d7d8", "e1e2", "e2e3", "e3e4", "e4e5", "e5e6", "e6e7", "e7e8", "f1f2", "f2f3", "f3f4", "f4f5", "f5f6", "f6f7", "f7f8",
+                              "b1a1", "c1b1", "d1c1", "e1d1", "f1e1", "b2a2", "c2b2", "d2c2", "e2d2", "f2e2", "b3a3", "c3b3", "d3c3", "e3d3", "f3e3", "b4a4", "c4b4", "d4c4", "e4d4", "f4e4", "b5a5", "c5b5", "d5c5", "e5d5", "f5e5", "b6a6", "c6b6", "d6c6", "e6d6", "f6e6", "b7a7", "c7b7", "d7c7", "e7d7", "f7e7", "b8a8", "c8b8", "d8c8", "e8d8", "f8e8", "a2a1", "a3a2", "a4a3", "a5a4", "a6a5", "a7a6", "a8a7", "b2b1", "b3b2", "b4b3", "b5b4", "b6b5", "b7b6", "b8b7", "c2c1", "c3c2", "c4c3", "c5c4", "c6c5", "c7c6", "c8c7", "d2d1", "d3d2", "d4d3", "d5d4", "d6d5", "d7d6", "d8d7", "e2e1", "e3e2", "e4e3", "e5e4", "e6e5", "e7e6", "e8e7", "f2f1", "f3f2", "f4f3", "f5f4", "f6f5", "f7f6", "f8f7"};*/
+        for(int i = 0; i < parameters.Length; i++)
+        {
+            if (!Regex.IsMatch(parameters[i], @"^\s*([a-f][1-8]){2}\s*$", RegexOptions.IgnoreCase))
+                yield break;
+            char[] parametersInCharArray = parameters[i].ToCharArray();
+            int charDifference = Math.Abs(parametersInCharArray[0] - parametersInCharArray[2]);
+            int numberDifference = Math.Abs(parametersInCharArray[1] - parametersInCharArray[3]);
+            if (!((charDifference == 1 && numberDifference == 0) || (charDifference == 0 && numberDifference == 1)))
+                yield break;
+            /*if (!valids.Contains(parameters[i]))
+            {
+                yield break;
+            }*/
         }
         yield return null;
         for (int i = 0; i < parameters.Length; i++)
         {
-            if (parameters[i].Equals("a1b1"))
+            char[] parametersInCharArray = parameters[i].ToCharArray();
+            int charDifference = parametersInCharArray[0] - parametersInCharArray[2];
+            int numberDifference = parametersInCharArray[1] - parametersInCharArray[3];
+            if (Math.Abs(charDifference) == 1 && Math.Abs(numberDifference) == 0)
+            {
+                int buttonToPress = (parametersInCharArray[1] - '1') * 5 + ((charDifference > 0 ? parametersInCharArray[2] : parametersInCharArray[0]) - 'a');
+                buttons[buttonToPress].OnInteract();
+            }
+            else if (Math.Abs(charDifference) == 0 && Math.Abs(numberDifference) == 1)
+            {
+                int buttonToPress = 40 + (parametersInCharArray[0] - 'a') * 7 + ((numberDifference > 0 ? parametersInCharArray[3] : parametersInCharArray[1]) - '1');
+                buttons[buttonToPress].OnInteract();
+            }
+            /*if (parameters[i].Equals("a1b1"))
             {
                 buttons[0].OnInteract();
             }
@@ -1010,15 +1175,97 @@ public class MasyuScript : MonoBehaviour {
             else if (parameters[i].Equals("f8f7"))
             {
                 buttons[81].OnInteract();
-            }
+            }*/
             yield return new WaitForSeconds(0.1f);
         }
     }
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        yield return ProcessTwitchCommand("h "+ solutionH[usedPuzzle]);
-        yield return ProcessTwitchCommand("v " + solutionV[usedPuzzle]);
+        yield return ProcessTwitchCommand("clear");
+        bool foundSolution = false;
+        bool whileLoopBreakFlag = false;
+        int i = 0;
+        int j = 0;
+        while (!whileLoopBreakFlag)
+        {
+            bool foundCondition = false;
+            if (i % 6 != 5)
+            {
+                if (solutionH[usedPuzzle][i - i / 6] == '1' && horizSelection.ElementAt(i - i / 6).Equals('0'))
+                {
+                    foundCondition = true;
+                    foundSolution = true;
+                    buttons[i - i / 6].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    i++;
+                    j += 8;
+                }
+            }
+            if (i % 6 != 0)
+            {
+                if (solutionH[usedPuzzle][i - i / 6 - 1] == '1' && horizSelection.ElementAt(i - i / 6 - 1).Equals('0'))
+                {
+                    foundCondition = true;
+                    foundSolution = true;
+                    buttons[i - i / 6 - 1].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    i--;
+                    j -= 8;
+                }
+            }
+            if (j % 8 != 7)
+            {
+                if (solutionV[usedPuzzle][j - j / 8] == '1' && vertSelection.ElementAt(j - j / 8).Equals('0'))
+                {
+                    foundCondition = true;
+                    foundSolution = true;
+                    buttons[40 + j - j / 8].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    j++;
+                    i += 6;
+                }
+            }
+            if (j % 8 != 0)
+            {
+                if (solutionV[usedPuzzle][j - j / 8 - 1] == '1' && vertSelection.ElementAt(j - j / 8 - 1).Equals('0'))
+                {
+                    foundCondition = true;
+                    foundSolution = true;
+                    buttons[40 + j - j / 8 - 1].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    j--;
+                    i -= 6;
+                }
+            }
+            if  (!foundCondition)
+            {
+                if (foundSolution)
+                {
+                    whileLoopBreakFlag = true;
+                }
+                else
+                {
+                    if (j >= 47 || i >= 47)
+                    {
+                        //The loop fails to meet any condition. Resorting to original forced solver.
+                        yield return ProcessTwitchCommand("h " + solutionH[usedPuzzle]);
+                        yield return ProcessTwitchCommand("v " + solutionV[usedPuzzle]);
+                        break;
+                    }
+                    if (i % 6 != 5)
+                    {
+                        i++;
+                        j += 8;
+                    }
+                    else
+                    {
+                        i++;
+                        j -= 39;
+                    }
+                }
+            }
+        }
         yield return ProcessTwitchCommand("submit");
     }
 }
