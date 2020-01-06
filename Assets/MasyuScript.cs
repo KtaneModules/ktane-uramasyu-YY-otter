@@ -128,6 +128,7 @@ public class MasyuScript : MonoBehaviour {
         {
             if (pressed == buttons[83])
             {
+                audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonRelease, transform);
                 StopCoroutine(runner);
             }
         }
@@ -261,7 +262,7 @@ public class MasyuScript : MonoBehaviour {
 
     //twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = "!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified cells] | !{0} h/horizontal 101100011 [Toggles the horizontal paths in reading order starting from the TL where 0=nopath & 1=path] | !{0} v/vertical 101100011 [Toggles the vertical paths in column order (top to bottom of each column from left to right) starting from the TL where 0=nopath & 1=path] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board] \nAdditional commands are available. Use !{0} d/draw/t/trace help to learn more about draw and trace commands.";
+    private readonly string TwitchHelpMessage = "!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified adjacent cells] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board] \nAdditional commands are available. Use !{0} h/horizontal/v/vertical to learn more about the horizonal and verical commands. Use !{0} d/draw/t/trace help to learn more about draw and trace commands.";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
@@ -285,7 +286,12 @@ public class MasyuScript : MonoBehaviour {
         {
             if(parameters2.Length == 2)
             {
-                if (parameters2[1].Length <= 40)
+                if (parameters2[1].EqualsIgnoreCase("help"))
+                {
+                    yield return "sendtochat !{1} h/horizontal 101100011 [Toggles the horizontal paths in reading order starting from the TL where 0=nopath & 1=path]";
+                    yield break;
+                }
+                else if (parameters2[1].Length <= 40)
                 {
                     for (int i = 0; i < parameters2[1].Length; i++)
                     {
@@ -314,7 +320,12 @@ public class MasyuScript : MonoBehaviour {
         {
             if (parameters2.Length == 2)
             {
-                if (parameters2[1].Length <= 42)
+                if (parameters2[1].EqualsIgnoreCase("help"))
+                {
+                    yield return "sendtochat !{1} v/vertical 101100011 [Toggles the vertical paths in column order (top to bottom of each column from left to right) starting from the TL where 0=nopath & 1=path]";
+                    yield break;
+                }
+                else if(parameters2[1].Length <= 42)
                 {
                     for (int i = 0; i < parameters2[1].Length; i++)
                     {
@@ -346,7 +357,7 @@ public class MasyuScript : MonoBehaviour {
             {
                 if (Regex.IsMatch(parameters2[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 {
-                    yield return "sendtochat !{1} d/draw a1 b1 b3 c3 c5 e5 a5 [Clears the screen and draws straight lines connecting between each point. Each adjacent coordinates must have a possible straight path between them (The last coordinate is considered adjacent to first coordinate.). At least 4 coordinates are expected. Separate each coordinate with spaces.]";
+                    yield return "sendtochat !{1} d/draw a1 b1 b3 c3 c5 e5 a5 [Clears the screen and draws straight lines connecting between each point. Each adjacent coordinates must have a possible straight path between them (The last coordinate must be adjacent to the first coordinate). At least 4 coordinates are expected. Separate each coordinate with spaces]";
                 }
                 yield break;
             }
@@ -415,7 +426,7 @@ public class MasyuScript : MonoBehaviour {
             {
                 if (Regex.IsMatch(parameters2[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 {
-                    yield return "sendtochat !{1} t/trace a4 r u dlr c3 l [Traces path starting from the specified coordinates towards specified cardinal directions.The first arguments must be coordinate followed by cardinal directions.The command must end with cardinal direction.Separate each argument with spaces.]";
+                    yield return "sendtochat !{1} t/trace a4 r u dlr c3 l [Traces path starting from the specified coordinates towards specified cardinal directions. The first arguments must be coordinate followed by cardinal directions. The command must end with cardinal direction.Separate each argument with spaces]";
                 }
                 yield break;
             }
@@ -1182,7 +1193,9 @@ public class MasyuScript : MonoBehaviour {
 
     IEnumerator TwitchHandleForcedSolve()
     {
-        yield return ProcessTwitchCommand("clear");
+        buttons[83].OnInteract();
+        while(timeHeld < 3) { yield return true; }
+        buttons[83].OnInteractEnded();
         bool foundSolution = false;
         bool whileLoopBreakFlag = false;
         int i = 0;
