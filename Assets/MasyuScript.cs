@@ -262,7 +262,7 @@ public class MasyuScript : MonoBehaviour {
 
     //twitch plays
     #pragma warning disable 414
-    private readonly string TwitchHelpMessage = "!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified adjacent cells] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board] \nAdditional commands are available. Use !{0} h/horizontal/v/vertical to learn more about the horizonal and verical commands. Use !{0} d/draw/t/trace help to learn more about draw and trace commands.";
+    private readonly string TwitchHelpMessage = "!{0} a1 b1;d4 d5 [Toggles the edges between the sets of two specified adjacent cells] | !{0} submit [Presses the submit button] | !{0} clear [Clears the board] \nAdditional commands are available. Use !{0} h/horizontal/v/vertical help to learn more about the horizonal and vertical commands. Use !{0} d/draw/t/trace help to learn more about draw and trace commands.";
     #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
