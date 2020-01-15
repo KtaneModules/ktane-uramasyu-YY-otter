@@ -367,7 +367,7 @@ public class MasyuScript : MonoBehaviour {
                     switch (inputMode)
                     {
                         case 1:
-                            yield return "sendtochat !{1} d/draw a1 b1 b3 c3 d dr r e5 a5 [Clears the screen and draws a single continuous line segment connecting between each adjacent points or in specified cardinal directions. The entire string must be a valid path and cannot be started with cardinal directions. At least 2 coordinates are expected. Separate each coordinate with spaces]";
+                            yield return "sendtochat !{1} d/draw a1 b1 b3 c3 d dr r e5 a5 [Clears the screen and draws a single continuous line segment connecting between each adjacent point or in specified cardinal directions. The entire string must be a valid path and cannot be started with cardinal directions. At least 2 coordinates are expected. Separate each coordinate with spaces]";
                             break;
                         case 2:
                             yield return "sendtochat !{1} t/trace a4 r u dlr c3 l [Traces path starting from the specified coordinates towards specified cardinal directions. The first arguments must be coordinate followed by cardinal directions. The command must end with cardinal direction. Separate each argument with spaces]";
