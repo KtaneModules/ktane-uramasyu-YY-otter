@@ -351,47 +351,81 @@ public class MasyuScript : MonoBehaviour {
                 }
             }
         }
-        if (Regex.IsMatch(parameters2[0], @"(^\s*d\s*$)|(^\s*draw\s*$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        if (Regex.IsMatch(command, @"^\s*((d|draw)(\s+help|(\s+[a-f][1-8](\s+(\s*[uldr])*)?)+))|((t|trace)(\s+help|(\s+[a-f][1-8]\s+(\s*[uldr])+)+))\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
-            if (parameters2.Length == 2)
+            command = Regex.Replace(command ,@"(\s\s+)|([uldr](?!(r?a)|p|[1-8]|\s))", "$2 ", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant).ToLowerInvariant();
+            var parameters3 = command.Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
+            int inputMode = 0;
+            if (Regex.IsMatch(parameters3[0], @"^\s*(d|draw)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                inputMode = 1;
+            else if (Regex.IsMatch(parameters3[0], @"^\s*(t|trace)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                inputMode = 2;
+            if (parameters3.Length == 2)
             {
-                if (Regex.IsMatch(parameters2[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                if (Regex.IsMatch(parameters3[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 {
-                    yield return "sendtochat !{1} d/draw a1 b1 b3 c3 c5 e5 a5 [Clears the screen and draws straight lines connecting between each point. Each adjacent coordinates must have a possible straight path between them (The last coordinate must be adjacent to the first coordinate). At least 4 coordinates are expected. Separate each coordinate with spaces]";
+                    switch (inputMode)
+                    {
+                        case 1:
+                            yield return "sendtochat !{1} d/draw a1 b1 b3 c3 d dr r e5 a5 [Clears the screen and draws a single continuous line segment connecting between each adjacent points or in specified cardinal directions. The entire string must be a valid path and cannot be started with cardinal directions. At least 2 coordinates are expected. Separate each coordinate with spaces]";
+                            break;
+                        case 2:
+                            yield return "sendtochat !{1} t/trace a4 r u dlr c3 l [Traces path starting from the specified coordinates towards specified cardinal directions. The first arguments must be coordinate followed by cardinal directions. The command must end with cardinal direction.Separate each argument with spaces]";
+                            break;
+                    }
                 }
                 yield break;
             }
-
             //Limits the length of command
-            if (parameters2.Length < 5 || parameters2.Length > 49)
+            if (parameters3.Length < 3 || parameters3.Length > 49)
                 yield break;
+            string directionalMovement = "udlr";
+            bool[] isBreak = new bool[parameters3.Length - 1];
+            string currentPosition = parameters3[1];
+            isBreak[0] = true;
 
-            for (int i = 1; i < parameters2.Length; i++)
+            for (int i = 1; i < parameters3.Length - 1; i++)
             {
-                if (!Regex.IsMatch(parameters2[i], @"^\s*[a-f][1-8]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                //Initial Regex.IsMatch requires that u d l r must be preceeded by coordinates somewhere in the string. Since this section of the code replace the directions with coordinate,
+                //it therefore always expect the first parameters of the pair to have length of two.
+                if (parameters3[i].Length != 2)
                     yield break;
-                if (i != parameters2.Length - 1 ? !(parameters2[i][0] == parameters2[i + 1][0] ^ parameters2[i][1] == parameters2[i + 1][1]) : !(parameters2[1][0] == parameters2[i][0] ^ parameters2[1][1] == parameters2[i][1]))
-                    yield break;
-            }
-
-            if (parameters2.GroupBy(x => x).Any(g => g.Count() > 1))
-            {
+                bool isTwoCharacters = parameters3[i + 1].Length == 2;
+                //Ternary operator to prevent index out of range exception
+                if (isTwoCharacters ? (inputMode == 1 ? ((parameters3[i][0] == parameters3[i + 1][0]) || (parameters3[i][1] == parameters3[i + 1][1])) : true) : false)
+                {
+                    isBreak[i] = true;
+                    currentPosition = parameters3[i + 1];
+                    continue;
+                }
+                else if (!isTwoCharacters && directionalMovement.Contains(parameters3[i + 1]))
+                {
+                    var currentPositionInArray = currentPosition.ToCharArray();
+                    if (parameters3[i + 1] == "r")
+                        currentPositionInArray[0] += currentPositionInArray[0] != 'f' ? (char) 1 : (char) 0;
+                    else if (parameters3[i + 1] == "l")
+                        currentPositionInArray[0] -= currentPositionInArray[0] != 'a' ? (char) 1 : (char) 0;
+                    else if (parameters3[i + 1] == "u")
+                        currentPositionInArray[1] -= currentPositionInArray[1] != '1' ? (char) 1 : (char) 0;
+                    else if (parameters3[i + 1] == "d" && currentPositionInArray[1] != '8')
+                        currentPositionInArray[1] += currentPositionInArray[1] != '8' ? (char) 1 : (char) 0;
+                    currentPosition = new string(currentPositionInArray);
+                    parameters3[i + 1] = currentPosition;
+                    continue;
+                }
                 yield break;
             }
-
             yield return null;
             buttons[83].OnInteract();
             yield return new WaitForSeconds(1.75f);
             buttons[83].OnInteractEnded();
-
-            for (int i = 1; i < parameters2.Length; i++)
+            for (int i = 1; i < parameters3.Length - 1; i++)
             {
-                bool isLast = i != parameters2.Length - 1;
-                parameters2[i] = parameters2[i].ToLowerInvariant();
-                if (isLast ? parameters2[i][1] == parameters2[i + 1][1] : parameters2[i][1] == parameters2[1][1])
+                if (isBreak[i] && inputMode == 2) continue;
+                if (parameters3[i][1] == parameters3[i + 1][1])
                 {
-                    int initialIndex = (parameters2[i][1] - '1') * 5 + (parameters2[i][0] - 'a');
-                    int times = isLast ? parameters2[i][0] - parameters2[i + 1][0] : parameters2[i][0] - parameters2[1][0];
+                    int initialIndex = (parameters3[i][1] - '1') * 5 + (parameters3[i][0] - 'a');
+                    int times = parameters3[i][0] - parameters3[i + 1][0];
                     for (int j = 0; j < Math.Abs(times); j++)
                     {
                         if (times > 0)
@@ -401,10 +435,10 @@ public class MasyuScript : MonoBehaviour {
                         yield return new WaitForSeconds(0.1f);
                     }
                 }
-                else if (isLast ? parameters2[i][0] == parameters2[i + 1][0] : parameters2[i][0] == parameters2[1][0])
+                else if (parameters3[i][0] == parameters3[i + 1][0])
                 {
-                    int initialIndex = (parameters2[i][1] - '1') + (parameters2[i][0] - 'a') * 7;
-                    int times = isLast ? parameters2[i][1] - parameters2[i + 1][1] : parameters2[i][1] - parameters2[1][1];
+                    int initialIndex = (parameters3[i][1] - '1') + (parameters3[i][0] - 'a') * 7;
+                    int times = parameters3[i][1] - parameters3[i + 1][1];
                     for (int j = 0; j < Math.Abs(times); j++)
                     {
                         if (times > 0)
@@ -415,84 +449,6 @@ public class MasyuScript : MonoBehaviour {
                     }
                 }
                 yield return "trycancel Drawing has been halted due to a request to cancel";
-            }
-            yield break;
-        }
-        if (Regex.IsMatch(parameters2[0], @"(^\s*t\s*$)|(^\s*trace\s*$)", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-        {
-            if (parameters2.Length == 1)
-                yield break;
-            if (parameters2.Length == 2)
-            {
-                if (Regex.IsMatch(parameters2[1], @"^\s*help\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-                {
-                    yield return "sendtochat !{1} t/trace a4 r u dlr c3 l [Traces path starting from the specified coordinates towards specified cardinal directions. The first arguments must be coordinate followed by cardinal directions. The command must end with cardinal direction.Separate each argument with spaces]";
-                }
-                yield break;
-            }
-            bool firstParametersCoordinate = false;
-            bool previousParametersIsDirection = false;
-
-            for (int i = 1; i < parameters2.Length; i++)
-            {
-                if (Regex.IsMatch(parameters2[i], @"^\s*[a-f][1-8]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) && (!firstParametersCoordinate || previousParametersIsDirection))
-                {
-                    previousParametersIsDirection = false;
-                    firstParametersCoordinate = true;
-                }
-                else if (Regex.IsMatch(parameters2[i], @"^\s*[udlr]+\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) && firstParametersCoordinate)
-                    previousParametersIsDirection = true;
-                else
-                    yield break;
-            }
-
-            if (!previousParametersIsDirection)
-                yield break;
-
-            string validatedCommand = parameters2.Join().ToLowerInvariant().Replace("trace", String.Empty).Replace("t", String.Empty).Replace(" ", String.Empty);
-
-            //Limits the length of the command
-            if (validatedCommand.Length > 75)
-                yield break;
-
-            yield return null;
-
-            int[] coordinate = new int[2];
-            //for (int i = 1; i < parameters2.Length; i++)
-            for (int i = 0; i < validatedCommand.Length; i++)
-            {
-                if (i != validatedCommand.Length - 1 ? Regex.IsMatch(validatedCommand.Substring(i, 2), @"^\s*[a-f][1-8]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) : false) 
-                {
-                    char[] letterCoordinate = validatedCommand.Substring(i, 2).ToCharArray();
-                    coordinate[0] = letterCoordinate[0] - 'a';
-                    coordinate[1] = letterCoordinate[1] - '1';
-                    i++;
-                }
-                else if(validatedCommand[i] =='u' && coordinate[1] != 0)
-                {
-                    coordinate[1]--;
-                    buttons[40 + coordinate[1] + coordinate[0] * 7].OnInteract();
-                    yield return new WaitForSeconds(0.1f);
-                }
-                else if (validatedCommand[i] == 'd' && coordinate[1] != 7)
-                {
-                    buttons[40 + coordinate[1] + coordinate[0] * 7].OnInteract();
-                    yield return new WaitForSeconds(0.1f);
-                    coordinate[1]++;
-                }
-                else if (validatedCommand[i] == 'l' && coordinate[0] != 0)
-                {
-                    coordinate[0]--;
-                    buttons[coordinate[1] * 5 + coordinate[0]].OnInteract();
-                    yield return new WaitForSeconds(0.1f);
-                }
-                else if (validatedCommand[i] == 'r' && coordinate[0] != 5)
-                {
-                    buttons[coordinate[1] * 5 + coordinate[0]].OnInteract();
-                    yield return new WaitForSeconds(0.1f);
-                    coordinate[0]++;
-                }
-                yield return "trycancel Tracing has been halted due to a request to cancel";
             }
             yield break;
         }
