@@ -284,7 +284,8 @@ public class MasyuScript : MonoBehaviour {
         string[] parameters2 = command.Split(' ');
         if (Regex.IsMatch(parameters2[0], @"^\s*h\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(parameters2[0], @"^\s*horizontal\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
-            if(parameters2.Length == 2)
+            yield return null;
+            if (parameters2.Length == 2)
             {
                 if (parameters2[1].EqualsIgnoreCase("help"))
                 {
@@ -297,10 +298,10 @@ public class MasyuScript : MonoBehaviour {
                     {
                         if (!parameters2[1].ElementAt(i).Equals('0') && !parameters2[1].ElementAt(i).Equals('1'))
                         {
+                            yield return "sendtochaterror The specified horizontal path character '" + parameters2[1].ElementAt(i) + "' is invalid!";
                             yield break;
                         }
                     }
-                    yield return null;
                     for (int i = 0; i < parameters2[1].Length; i++)
                     {
                         if (parameters2[1].ElementAt(i).Equals('1') && horizSelection.ElementAt(i).Equals('0'))
@@ -314,10 +315,26 @@ public class MasyuScript : MonoBehaviour {
                     }
                     yield break;
                 }
+                else
+                {
+                    yield return "sendtochaterror Please make the length of the horizontal path string 40 or less characters!";
+                    yield break;
+                }
+            }
+            else if(parameters2.Length == 1)
+            {
+                yield return "sendtochaterror Please specify the horizontal path(s) you wish to toggle!";
+                yield break;
+            }
+            else
+            {
+                yield return "sendtochaterror Too many parameters!";
+                yield break;
             }
         }
         if (Regex.IsMatch(parameters2[0], @"^\s*v\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant) || Regex.IsMatch(parameters2[0], @"^\s*vertical\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
         {
+            yield return null;
             if (parameters2.Length == 2)
             {
                 if (parameters2[1].EqualsIgnoreCase("help"))
@@ -331,10 +348,10 @@ public class MasyuScript : MonoBehaviour {
                     {
                         if (!parameters2[1].ElementAt(i).Equals('0') && !parameters2[1].ElementAt(i).Equals('1'))
                         {
+                            yield return "sendtochaterror The specified vertical path character '" + parameters2[1].ElementAt(i) + "' is invalid!";
                             yield break;
                         }
                     }
-                    yield return null;
                     for (int i = 0; i < parameters2[1].Length; i++)
                     {
                         if (parameters2[1].ElementAt(i).Equals('1') && vertSelection.ElementAt(i).Equals('0'))
@@ -349,6 +366,21 @@ public class MasyuScript : MonoBehaviour {
                     }
                     yield break;
                 }
+                else
+                {
+                    yield return "sendtochaterror Please make the length of the vertical path string 42 or less characters!";
+                    yield break;
+                }
+            }
+            else if (parameters2.Length == 1)
+            {
+                yield return "sendtochaterror Please specify the vertical path(s) you wish to toggle!";
+                yield break;
+            }
+            else
+            {
+                yield return "sendtochaterror Too many parameters!";
+                yield break;
             }
         }
         if (Regex.IsMatch(command, @"^\s*((d|draw)(\s+help|(\s+[a-f][1-8](\s+(\s*[uldr])*)?)+))|((t|trace)(\s+help|(\s+[a-f][1-8]\s+(\s*[uldr])+)+))\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
@@ -457,21 +489,27 @@ public class MasyuScript : MonoBehaviour {
         string[] parameters = command.Split(',',';');
         /*string[] valids = { "a1b1", "b1c1", "c1d1", "d1e1", "e1f1", "a2b2", "b2c2", "c2d2", "d2e2", "e2f2", "a3b3", "b3c3", "c3d3", "d3e3", "e3f3", "a4b4", "b4c4", "c4d4", "d4e4", "e4f4", "a5b5", "b5c5", "c5d5", "d5e5", "e5f5", "a6b6", "b6c6", "c6d6", "d6e6", "e6f6", "a7b7", "b7c7", "c7d7", "d7e7", "e7f7", "a8b8", "b8c8", "c8d8", "d8e8", "e8f8", "a1a2", "a2a3", "a3a4", "a4a5", "a5a6", "a6a7", "a7a8", "b1b2", "b2b3", "b3b4", "b4b5", "b5b6", "b6b7", "b7b8", "c1c2", "c2c3", "c3c4", "c4c5", "c5c6", "c6c7", "c7c8", "d1d2", "d2d3", "d3d4", "d4d5", "d5d6", "d6d7", "d7d8", "e1e2", "e2e3", "e3e4", "e4e5", "e5e6", "e6e7", "e7e8", "f1f2", "f2f3", "f3f4", "f4f5", "f5f6", "f6f7", "f7f8",
                               "b1a1", "c1b1", "d1c1", "e1d1", "f1e1", "b2a2", "c2b2", "d2c2", "e2d2", "f2e2", "b3a3", "c3b3", "d3c3", "e3d3", "f3e3", "b4a4", "c4b4", "d4c4", "e4d4", "f4e4", "b5a5", "c5b5", "d5c5", "e5d5", "f5e5", "b6a6", "c6b6", "d6c6", "e6d6", "f6e6", "b7a7", "c7b7", "d7c7", "e7d7", "f7e7", "b8a8", "c8b8", "d8c8", "e8d8", "f8e8", "a2a1", "a3a2", "a4a3", "a5a4", "a6a5", "a7a6", "a8a7", "b2b1", "b3b2", "b4b3", "b5b4", "b6b5", "b7b6", "b8b7", "c2c1", "c3c2", "c4c3", "c5c4", "c6c5", "c7c6", "c8c7", "d2d1", "d3d2", "d4d3", "d5d4", "d6d5", "d7d6", "d8d7", "e2e1", "e3e2", "e4e3", "e5e4", "e6e5", "e7e6", "e8e7", "f2f1", "f3f2", "f4f3", "f5f4", "f6f5", "f7f6", "f8f7"};*/
-        for(int i = 0; i < parameters.Length; i++)
+        yield return null;
+        for (int i = 0; i < parameters.Length; i++)
         {
             if (!Regex.IsMatch(parameters[i], @"^\s*([a-f][1-8]){2}\s*$", RegexOptions.IgnoreCase))
+            {
+                yield return "sendtochaterror The specified cell pair '" + parameters[i] + "' is invalid!";
                 yield break;
+            }
             char[] parametersInCharArray = parameters[i].ToCharArray();
             int charDifference = Math.Abs(parametersInCharArray[0] - parametersInCharArray[2]);
             int numberDifference = Math.Abs(parametersInCharArray[1] - parametersInCharArray[3]);
             if (!((charDifference == 1 && numberDifference == 0) || (charDifference == 0 && numberDifference == 1)))
+            {
+                yield return "sendtochaterror The specified cell pair '" + parameters[i] + "' is not adjacent!";
                 yield break;
+            }
             /*if (!valids.Contains(parameters[i]))
             {
                 yield break;
             }*/
         }
-        yield return null;
         for (int i = 0; i < parameters.Length; i++)
         {
             char[] parametersInCharArray = parameters[i].ToCharArray();
