@@ -448,9 +448,12 @@ public class MasyuScript : MonoBehaviour {
                 yield break;
             }
             yield return null;
-            buttons[83].OnInteract();
-            yield return new WaitForSeconds(1.75f);
-            buttons[83].OnInteractEnded();
+            if (inputMode == 1)
+            {
+                buttons[83].OnInteract();
+                yield return new WaitForSeconds(1.75f);
+                buttons[83].OnInteractEnded();
+            }
             for (int i = 1; i < parameters3.Length - 1; i++)
             {
                 if (isBreak[i] && inputMode == 2) continue;
@@ -1188,7 +1191,7 @@ public class MasyuScript : MonoBehaviour {
     IEnumerator TwitchHandleForcedSolve()
     {
         buttons[83].OnInteract();
-        while(timeHeld < 3) { yield return true; yield return new WaitForSeconds(0.01f); }
+        while(timeHeld < 3) { yield return true; }
         buttons[83].OnInteractEnded();
         bool foundSolution = false;
         bool whileLoopBreakFlag = false;
