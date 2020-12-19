@@ -409,7 +409,7 @@ public class MasyuScript : MonoBehaviour {
                 yield break;
             }
             //Limits the length of command
-            if (parameters3.Length < 3 || parameters3.Length > 49)
+            if (parameters3.Length < 3 || parameters3.Length > 50)
                 yield break;
             string directionalMovement = "udlr";
             bool[] isBreak = new bool[parameters3.Length - 1];
