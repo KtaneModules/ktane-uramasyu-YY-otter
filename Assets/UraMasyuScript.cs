@@ -51,7 +51,7 @@ public class UraMasyuScript : MonoBehaviour {
                 {
                     new Dictionary<string, object>
                     {
-                        {"Key", "SwopSubmitForClear"},
+                        {"Key", "shouldSwapSubmitForClear"},
                         {"Text", "Swap Submit button for Clear button (hard mode)"}
                     }
                 }
@@ -62,7 +62,7 @@ public class UraMasyuScript : MonoBehaviour {
 
     private class UraMasyuSettings
     {
-        public bool SwopSubmitForClear = false;
+        public bool shouldSwapSubmitForClear = false;
     }
 
     void Awake()
@@ -80,15 +80,25 @@ public class UraMasyuScript : MonoBehaviour {
         var missionDesc = KTMissionGetter.Mission.Description;
         if (missionDesc != null)
         {
-            var regex = new Regex(@"\[UraMasyu\] (true|false)");
-            var match = regex.Match(missionDesc);
+            var optionsRegex = new Regex(@"\[UraMasyu\]\s*(true|false|default)");
+            var match = optionsRegex.Match(missionDesc);
             if (match.Success)
             {
-                string[] options = match.Value.Replace("[UraMasyu] ", "").Split(',');
-                bool[] values = new bool[options.Length];
-                for (int i = 0; i < options.Length; i++)
-                    values[i] = options[i] == "true" ? true : false;
-                Settings.SwopSubmitForClear = values[0];
+                string[] options = Regex.Replace(match.Value, @"\[UraMasyu\]|\s", "").Split(',');
+                
+                //shouldSwapSubmitForClear
+                switch(options[0]){
+                    case "true":
+                        Settings.shouldSwapSubmitForClear = true;
+                    break;
+
+                    case "false":
+                        Settings.shouldSwapSubmitForClear = false;
+                    break;
+
+                    default:
+                    break;
+                }
             }
         }
     }
@@ -115,7 +125,6 @@ public class UraMasyuScript : MonoBehaviour {
                     moduleSolved = true;
                     success();
                     GetComponent<KMBombModule>().HandlePass();
-                    //Start();
                 }
                 else
                 {
@@ -235,7 +244,7 @@ public class UraMasyuScript : MonoBehaviour {
     private void swapSubmitForClear()
     {
         //swap submit button for clear button
-        if (Settings.SwopSubmitForClear)
+        if (Settings.shouldSwapSubmitForClear)
         {
             largeButtons[0].transform.localPosition = new Vector3(0.05f, 0.0f, 0.004f);
             largeButtons[1].transform.localPosition = new Vector3(0.05f, 0.0f, -0.0415f);
