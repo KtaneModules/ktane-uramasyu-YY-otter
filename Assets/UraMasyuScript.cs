@@ -52,7 +52,7 @@ public class UraMasyuScript : MonoBehaviour {
                     new Dictionary<string, object>
                     {
                         {"Key", "shouldSwapSubmitForClear"},
-                        {"Text", "Swap Submit button for Clear button (hard mode)"}
+                        {"Text", "Swap the locations of the submit and clear button (hard mode)"}
                     }
                 }
             }
