@@ -62,7 +62,7 @@ public class UraMasyuScript : MonoBehaviour {
                     new Dictionary<string, object>
                     {
                         {"Key", "shouldSwapSubmitForClear"},
-                        {"Text", "Masyu swaps the locations of the submit and clear button (easy mode)"}
+                        {"Text", "Masyu swaps the locations of the Submit and Clear button (easy mode)"}
                     },
                     new Dictionary<string, object>
                     {
@@ -93,6 +93,8 @@ public class UraMasyuScript : MonoBehaviour {
 
         var modConfig = new ModConfig<UraMasyuSettings>("UraMasyu");
         Settings = modConfig.read();
+
+        bool isForcedToSwapByMission = false, isForcedToAppearOnlyByMission = false;
         var missionDesc = KTMissionGetter.Mission.Description;
         if (missionDesc != null)
         {
@@ -106,10 +108,13 @@ public class UraMasyuScript : MonoBehaviour {
                 switch(options[0]){
                     case "true":
                         Settings.shouldSwapSubmitForClear = true;
+                        Debug.LogFormat("[UraMasyu #{0}] Mission forced this to swap Submit for Clear when Masyu appears.", moduleId);
+                        isForcedToSwapByMission = true;
                     break;
 
                     case "false":
                         Settings.shouldSwapSubmitForClear = false;
+                        Debug.LogFormat("[UraMasyu #{0}] Mission forced this not to swap Submit for Clear when Masyu appears.", moduleId);
                     break;
 
                     default:
@@ -121,10 +126,13 @@ public class UraMasyuScript : MonoBehaviour {
                     switch(options[1]){
                         case "true":
                             Settings.shouldAppearOnlyUraMasyu = true;
+                            Debug.LogFormat("[UraMasyu #{0}] Mission forced Masyu to not be able to appear in this.", moduleId);
+                            isForcedToAppearOnlyByMission = true;
                         break;
 
                         case "false":
                             Settings.shouldAppearOnlyUraMasyu = false;
+                            Debug.LogFormat("[UraMasyu #{0}] Mission forced Masyu to be able to appear in this.", moduleId);
                         break;
 
                         default:
@@ -132,6 +140,13 @@ public class UraMasyuScript : MonoBehaviour {
                     }
                 }
             }
+        }
+
+        if(Settings.shouldSwapSubmitForClear && !isForcedToSwapByMission){
+            Debug.LogFormat("[UraMasyu #{0}] Setting swapped Submit for Clear when Masyu appears.", moduleId);
+        }
+        if(Settings.shouldAppearOnlyUraMasyu && !isForcedToAppearOnlyByMission){
+            Debug.LogFormat("[UraMasyu #{0}] Setting forced Masyu to not be able to appear in this.", moduleId);
         }
     }
 
@@ -316,6 +331,9 @@ public class UraMasyuScript : MonoBehaviour {
     private void generatePuzzle()
     {
         //pick puzzle to use at random
+        TimeSpan currentTime = DateTime.Now.TimeOfDay;
+        UnityEngine.Random.InitState((int)(currentTime.Ticks % uint.MaxValue) + moduleId);
+
         usedPuzzle = UnityEngine.Random.Range(0, dots.Length);
         if(Settings.shouldAppearOnlyUraMasyu)
         {
